@@ -366,7 +366,10 @@ module Vagrant
 
       # Order the providers by priority. Higher values are tried first.
       ordered = ordered.sort do |a, b|
-        # If we see the default, then that one always wins
+        # If we see the configured one, then that one always wins
+        next -1 if config.key?(a[1])
+        next 1  if config.key?(b[1])
+        # Else if we see the default, then it wins
         next -1 if a[1] == default
         next 1  if b[1] == default
 

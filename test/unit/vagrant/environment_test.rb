@@ -854,6 +854,26 @@ VF
         expect(subject.default_provider(machine: :sub)).to eq(:bar)
       end
     end
+
+    it "is the per vm defined providers in the Vagrantfile even if default" do
+      [ :bar, :baz ].each do |name|
+        subject.vagrantfile.config.vm.define "sub#{name}" do |v|
+          v.vm.provider name
+        end
+      end
+      subject.vagrantfile.config.vm.finalize!
+
+      plugin_providers[:foo] = [provider_usable_class(true), { priority: 5 }]
+      plugin_providers[:bar] = [provider_usable_class(true), { priority: 7 }]
+      plugin_providers[:baz] = [provider_usable_class(true), { priority: 2 }]
+
+      with_temp_env("VAGRANT_DEFAULT_PROVIDER" => "foo") do
+        [ :bar, :baz ].each do |name|
+          expect(subject.default_provider(machine: :"sub#{name}",
+                                          force_default: false)).to eq(name)
+        end
+      end
+    end
   end
 
   describe "local data path" do
